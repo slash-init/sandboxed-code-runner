@@ -1,5 +1,6 @@
 import express from "express";
 import fs from "fs";
+import path from "path";
 import { exec } from "child_process";
 
 const app = express();
@@ -29,39 +30,66 @@ const languageConfig = {
   },
 };
 
+// app.post("/run", (req, res) => {
+//   const { language, code } = req.body;
+
+//   if (!languageConfig[language]) {
+//     return res.status(400).json({
+//       error: "Unsupported language",
+//     });
+//   }
+
+//   if (!code) {
+//     return res.status(400).json({
+//       error: "No code provided",
+//     });
+//   }
+
+//   const config = languageConfig[language];
+
+//   //Write code to file
+//   fs.writeFileSync(config.fileName, code); 
+//   let command = ""; //Build command
+
+//   if (config.compile) {
+//     command = `${config.compile} && ${config.run}`;
+//   } else {
+//     command = config.run;
+//   }
+
+//   exec(command, (err, stdout, stderr) => {
+//     res.json({
+//       output: stdout,
+//       error: stderr,
+//     });
+//   });
+// });
+
 app.post("/run", (req, res) => {
-  const { language, code } = req.body;
+  const { code } = req.body;
 
-  if (!languageConfig[language]) {
-    return res.status(400).json({
-      error: "Unsupported language",
-    });
-  }
+  const jobId = Date.now().toString();
+  const jobDir = path.join("executions", jobId);
 
-  if (!code) {
-    return res.status(400).json({
-      error: "No code provided",
-    });
-  }
+  fs.mkdirSync(jobDir);
+  fs.writeFileSync(path.join(jobDir, "main.py"), code);
 
-  const config = languageConfig[language];
-
-  //Write code to file
-  fs.writeFileSync(config.fileName, code); //use sync to block further code exec untill the code is fully written
-
-  let command = ""; //Build command
-
-  if (config.compile) {
-    command = `${config.compile} && ${config.run}`;
-  } else {
-    command = config.run;
-  }
+  const cmd = `
+docker run --rm \
+--cpus=1 \
+--memory=256m \
+--pids-limit=64 \
+-v ${process.cwd()}/${jobDir}:/app \
+python-sandbox
+`;
 
   //exec - starts a shell
   //runs the command
   //buffers everything printed
   //returns err, stdout, stderr
-  exec(command, (err, stdout, stderr) => {
+  exec(cmd, { timeout: 2000 }, (err, stdout, stderr) => {
+    fs.rmSync(jobDir, { recursive: true, force: true });
+
     res.json({
       output: stdout,
       error: stderr,
