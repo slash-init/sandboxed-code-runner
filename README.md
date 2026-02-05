@@ -1,21 +1,22 @@
 # Online Code Execution Backend (Sandboxed)
 
-A backend service that executes user-submitted code in an isolated, resource-limited environment using Docker.
+A backend service that executes user-submitted code in isolated, resource-limited Docker containers.
 
-This project focuses on **safe execution of untrusted code**, not on UI or language features.
+The system is designed as a **sandboxed execution engine** for untrusted code, focusing on correctness, isolation, and lifecycle control rather than UI or editor features.
 
 ---
 
 ## Why This Project Exists
 
-Executing arbitrary code is inherently dangerous. Running user programs directly on a server can lead to:
+Executing arbitrary user code is inherently dangerous. Running programs directly on a server can lead to:
 
 - Infinite loops exhausting CPU
 - Memory exhaustion
 - Fork bombs
+- Zombie processes
 - Unauthorized filesystem access
 
-This project demonstrates how to mitigate those risks by isolating execution inside Docker containers with strict limits.
+This project demonstrates how to mitigate these risks by running each execution inside a constrained, disposable container with strict resource limits and enforced termination.
 
 It is intended as a **systems-focused backend project**, not a toy compiler.
 
@@ -24,24 +25,28 @@ It is intended as a **systems-focused backend project**, not a toy compiler.
 ## Core Ideas
 
 - User code is never executed on the host machine
-- Each execution runs in its own disposable container
+- Each request runs inside its own disposable Docker container
 - CPU, memory, process count, and execution time are restricted
+- Containers are explicitly named and force-killed on timeout
 - All execution artifacts are temporary and cleaned up automatically
+- Execution results include a classified status
 
 ---
 
 ## High-Level Architecture
 
-1. Client sends source code via HTTP
+1. Client sends source code and language via HTTP
 2. Backend creates a temporary execution directory
 3. Source code is written to a file
 4. A Docker container is started with:
    - Limited CPU and memory
-   - No persistent state
+   - Limited process count
    - Mounted execution directory
-5. Program output is captured
-6. Container and temporary files are destroyed
-7. Output is returned to the client
+5. Program output is streamed back to the backend
+6. On completion or timeout:
+   - Container is terminated
+   - Temporary files are removed
+7. Structured result is returned to the client
 
 ---
 
@@ -49,9 +54,25 @@ It is intended as a **systems-focused backend project**, not a toy compiler.
 
 - Node.js (Express)
 - Docker
-- Python (initial execution language)
+- Python (initial execution runtime)
 
-The architecture is language-agnostic and can be extended to support other languages.
+The architecture is language-agnostic and supports adding additional runtimes.
+
+---
+
+## API Response Format
+
+Each execution returns:
+
+```json
+{
+  "status": "success | runtime_error | timeout",
+  "stdout": "",
+  "stderr": ""
+}
+```
+
+Status is derived from observable execution outcomes.
 
 ---
 
@@ -62,10 +83,11 @@ Each execution is constrained by:
 - CPU limit
 - Memory limit
 - Process limit
-- Execution timeout
+- Hard execution timeout
 - Filesystem isolation
+- Explicit container termination
 
-This prevents common abuse patterns such as infinite loops, memory bombs, and fork bombs.
+This prevents common abuse patterns such as infinite loops, memory bombs, fork bombs, and lingering processes.
 
 ---
 
@@ -73,43 +95,43 @@ This prevents common abuse patterns such as infinite loops, memory bombs, and fo
 
 ```
 backend/
-index.js
-executions/
+  index.js
+  executions/
 sandbox/
-Dockerfile
+  Dockerfile
 ```
 
-- `sandbox/` defines the execution environment
-- `executions/` holds per-request temporary files (auto-deleted)
+- sandbox/ defines execution images
+- executions/ holds per-request temporary files (auto-deleted)
 
 ---
 
 ## Current Limitations
 
-- Single-language support (Python)
+- Single-language runtime configured (Python)
 - No authentication or rate limiting
-- Uses `exec` instead of streaming execution
+- No persistent storage
 - Not hardened for hostile production environments
 
-These are deliberate tradeoffs to keep the focus on execution isolation.
+These are deliberate tradeoffs to keep the focus on sandboxed execution.
 
 ---
 
 ## Intended Use
 
 - Learning systems-level backend concepts
-- Demonstrating sandboxed execution
+- Demonstrating container-based sandboxing
 - Portfolio or academic project
-- Foundation for an online compiler or judge
+- Foundation for an online judge or execution service
 
 ---
 
 ## Disclaimer
 
-This project demonstrates **best practices for isolation**, but it is not intended to be deployed as-is in a hostile production environment without further hardening.
+This project demonstrates isolation techniques, but it is not intended to be deployed as-is in hostile production environments without additional hardening, monitoring, and security controls.
 
 ---
 
 ## Author
 
-Built as an exploration of backend execution pipelines and container-based sandboxing.
+Built as an exploration of execution pipelines, process isolation, and container lifecycle management.

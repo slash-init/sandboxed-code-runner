@@ -22,6 +22,8 @@ app.post("/run", (req, res) => {
   const jobId = Date.now().toString();
   const jobDir = path.join("executions", jobId);
 
+  const containerName = `job-${jobId}`;
+
   fs.mkdirSync(jobDir);
   fs.writeFileSync(path.join(jobDir, runtime.file), code);
 
@@ -49,6 +51,8 @@ app.post("/run", (req, res) => {
   // 3) Streams stderr chunk-by-chunk
   const child = spawn("docker", [
     "run",
+    "--name",
+    containerName,
     "--rm",
     "--cpus=1",
     "--memory=256m",
@@ -63,7 +67,7 @@ app.post("/run", (req, res) => {
   //manual timeout kill - spawn doesnt have built-in timeout like exec
   const timer = setTimeout(() => {
     timedOut = true;
-    child.kill("SIGKILL");
+    spawn("docker", ["kill", containerName]); //docker kill <id> 
   }, TIME_LIMIT);
 
   //exec - starts a shell
