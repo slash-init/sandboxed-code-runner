@@ -58,9 +58,11 @@ app.post("/run", (req, res) => {
     runtime.image,
   ]);
 
+  let timedOut = false;
   const TIME_LIMIT = 2000; // ms
   //manual timeout kill - spawn doesnt have built-in timeout like exec
   const timer = setTimeout(() => {
+    timedOut = true;
     child.kill("SIGKILL");
   }, TIME_LIMIT);
 
@@ -89,10 +91,20 @@ app.post("/run", (req, res) => {
   });
 
   child.on("close", () => {
+    let status;
+
+    if (timedOut) {
+      status = "timeout";
+    } else if (error.length > 0) {
+      status = "runtime_error";
+    } else {
+      status = "success";
+    }
+
     clearTimeout(timer);
 
     fs.rmSync(jobDir, { recursive: true, force: true });
-    res.json({ output, error });
+    res.json({ status, output, error });
   });
 });
 
