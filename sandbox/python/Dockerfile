@@ -8,8 +8,11 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Create a non-root user
+# This command creates a new user named sandbox-user inside the container.
+# The -m flag ensures that a home directory is created for the user (e.g., /home/sandbox-user).
 RUN useradd -m sandbox-user
-USER sandbox-user
+# Switch the default user for the container from root to sandbox-user
+USER sandbox-user 
 
 # When container starts, it automatically runs:
 # python3 main.py
