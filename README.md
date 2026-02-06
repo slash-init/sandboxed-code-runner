@@ -54,7 +54,7 @@ It is intended as a **systems-focused backend project**, not a toy compiler.
 
 - Node.js (Express)
 - Docker
-- Python (initial execution runtime)
+- Python and C++ sandbox images
 
 The architecture is language-agnostic and supports adding additional runtimes.
 
@@ -94,21 +94,33 @@ This prevents common abuse patterns such as infinite loops, memory bombs, fork b
 ## Project Structure
 
 ```
-backend/
-  index.js
-  executions/
+executions/
 sandbox/
-  Dockerfile
+  cpp/
+    Dockerfile
+  python/
+    Dockerfile
+src/
+  app.js
+  server.js
+  config/
+    limits.js
+    runtimes.js
+  routes/
+    run.routes.js
+  services/
+    execution.service.js
 ```
 
-- sandbox/ defines execution images
+- sandbox/ defines execution images per language
 - executions/ holds per-request temporary files (auto-deleted)
+- src/ contains the Express app, routes, and execution service
 
 ---
 
 ## Current Limitations
 
-- Single-language runtime configured (Python)
+- Limited runtime set (Python, C++)
 - No authentication or rate limiting
 - No persistent storage
 - Not hardened for hostile production environments

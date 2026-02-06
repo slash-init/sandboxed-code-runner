@@ -1,25 +1,9 @@
-import express from "express";
 import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
+import { runtimes } from "../config/runtimes.js";
 
-const app = express();
-app.use(express.json());
-
-const runtimes = {
-  python: {
-    image: "python-sandbox",
-    file: "main.py",
-  },
-
-  cpp: {
-    image: "cpp-sandbox",
-    file: "main.cpp",
-  }
-
-};
-
-app.post("/run", (req, res) => {
+export async function runCode(req, res) {
   const { language, code, input } = req.body;
 
   const runtime = runtimes[language];
@@ -33,7 +17,6 @@ app.post("/run", (req, res) => {
   fs.mkdirSync(jobDir);
   fs.writeFileSync(path.join(jobDir, runtime.file), code);
   fs.writeFileSync(path.join(jobDir, "input.txt"), input || "");
-
 
   // --rm : runs a container and automatically removes it after execution
   // --cpus=1 : limits the container to use maximum 1 CPU core(prevents CPU exhaustion attacks)
@@ -75,7 +58,7 @@ app.post("/run", (req, res) => {
   //manual timeout kill - spawn doesnt have built-in timeout like exec
   const timer = setTimeout(() => {
     timedOut = true;
-    spawn("docker", ["kill", containerName]); //docker kill <id> 
+    spawn("docker", ["kill", containerName]); //docker kill <id>
   }, TIME_LIMIT);
 
   //exec - starts a shell
@@ -116,10 +99,6 @@ app.post("/run", (req, res) => {
     clearTimeout(timer);
 
     fs.rmSync(jobDir, { recursive: true, force: true });
-    res.json({ status, output, error });
+    res.json({ status, stdout: output, stderr: error });
   });
-});
-
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
+}
