@@ -7,6 +7,10 @@ FROM python:3.11-slim
 # Everything happens here.
 WORKDIR /app
 
+# Create a non-root user
+RUN useradd -m sandbox-user
+USER sandbox-user
+
 # When container starts, it automatically runs:
 # python3 main.py
 CMD ["bash", "-c", "python3 main.py < input.txt"]

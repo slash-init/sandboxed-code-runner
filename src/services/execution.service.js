@@ -48,6 +48,9 @@ export async function runCode(req, res) {
     "--cpus=1",
     "--memory=256m",
     "--pids-limit=64",
+    "--network=none", // Disable network access
+    "--cap-drop=ALL", // Drop all capabilities
+    "--read-only", // Use a read-only filesystem
     "-v",
     `${process.cwd()}/${jobDir}:/app`,
     runtime.image,
