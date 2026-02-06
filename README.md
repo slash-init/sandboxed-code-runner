@@ -55,6 +55,7 @@ It is intended as a **systems-focused backend project**, not a toy compiler.
 - Node.js (Express)
 - Docker
 - Python and C++ sandbox images
+- express-rate-limit for API protection
 
 The architecture is language-agnostic and supports adding additional runtimes.
 
@@ -121,7 +122,7 @@ src/
 ## Current Limitations
 
 - Limited runtime set (Python, C++)
-- No authentication or rate limiting
+- No authentication
 - No persistent storage
 - Not hardened for hostile production environments
 
