@@ -9,8 +9,7 @@ WORKDIR /app
 
 # When container starts, it automatically runs:
 # python3 main.py
-CMD ["python3", "main.py"]
-
+CMD ["bash", "-c", "python3 main.py < input.txt"]
 
 # docker build -t python-sandbox .
 # What happenes

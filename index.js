@@ -11,10 +11,16 @@ const runtimes = {
     image: "python-sandbox",
     file: "main.py",
   },
+
+  cpp: {
+    image: "cpp-sandbox",
+    file: "main.cpp",
+  }
+
 };
 
 app.post("/run", (req, res) => {
-  const { language, code } = req.body;
+  const { language, code, input } = req.body;
 
   const runtime = runtimes[language];
   if (!runtime) return res.status(400).json({ error: "Unsupported language" });
@@ -26,6 +32,8 @@ app.post("/run", (req, res) => {
 
   fs.mkdirSync(jobDir);
   fs.writeFileSync(path.join(jobDir, runtime.file), code);
+  fs.writeFileSync(path.join(jobDir, "input.txt"), input || "");
+
 
   // --rm : runs a container and automatically removes it after execution
   // --cpus=1 : limits the container to use maximum 1 CPU core(prevents CPU exhaustion attacks)
