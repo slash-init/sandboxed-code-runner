@@ -36,7 +36,7 @@ docker --version  # Should be Docker 20.10+
 ```bash
 # Using Git
 git clone <repository-url>
-cd online-compiler
+cd sandboxed-code-runner
 
 # Or download as ZIP and extract
 ```
