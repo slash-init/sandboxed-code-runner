@@ -198,6 +198,25 @@ This makes adding new languages a matter of:
 
 ---
 
+## Concurrency Control
+
+The system enforces a **maximum of 5 concurrent executions** via the `MAX_EXECUTIONS` constant in `execution.service.js`. When the limit is reached, new requests receive a `503 Service Unavailable` response.
+
+```javascript
+let runningExecutions = 0;
+const MAX_EXECUTIONS = 5;
+```
+
+This prevents:
+
+- Excessive memory usage on the host
+- Docker daemon overload
+- Resource starvation for other applications
+
+Execution count is incremented before spawning and decremented during cleanup, with proper resource management to prevent leaks.
+
+---
+
 ## Known Limitations
 
 1. **Error Message Exposure**:
@@ -212,7 +231,10 @@ This makes adding new languages a matter of:
 4. **Single-Server Architecture**:
    - No horizontal scaling or load distribution.
 
-5. **Temporary File Races**:
+5. **Concurrency Ceiling**:
+   - Maximum 5 concurrent executions (configurable but not auto-scaling).
+
+6. **Temporary File Races**:
    - Timestamp-based job IDs may collide under high concurrency.
 
 ---

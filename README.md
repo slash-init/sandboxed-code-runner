@@ -232,6 +232,7 @@ curl -X POST http://localhost:3000/run \
 - Full stderr returned (potential information leak)
 - Timestamp-based job IDs (collision risk under high load)
 - Single-server architecture (no horizontal scaling)
+- Maximum 5 concurrent executions (configurable via `MAX_EXECUTIONS` in execution.service.js)
 
 These are deliberate tradeoffs to keep the focus on sandboxed execution fundamentals.
 

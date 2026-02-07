@@ -3,16 +3,28 @@ import path from "path";
 import { spawn } from "child_process";
 import { runtimes } from "../config/runtimes.js";
 
+let runningExecutions = 0;
+const MAX_EXECUTIONS = 5;
+
 export async function runCode(req, res) {
   const { language, code, input } = req.body;
 
   const runtime = runtimes[language];
   if (!runtime) return res.status(400).json({ error: "Unsupported language" });
 
+  // Check capacity BEFORE creating any files -> avoid resource leak
+  if (runningExecutions >= MAX_EXECUTIONS) {
+    return res.status(503).json({
+      error: "Execution capacity reached. Try again later.",
+    });
+  }
+
   const jobId = Date.now().toString();
   const jobDir = path.join("executions", jobId);
 
   const containerName = `job-${jobId}`;
+
+  fs.mkdirSync("executions", { recursive: true }); //create the dir if it doesnt exist
 
   fs.mkdirSync(jobDir);
   fs.writeFileSync(path.join(jobDir, runtime.file), code);
@@ -33,6 +45,26 @@ export async function runCode(req, res) {
   // -v ${process.cwd()}/${jobDir}:/app \
   // python-sandbox
   // `;
+
+  runningExecutions++;
+
+  // Guard to prevent double-response errors 
+  //(A double response error (ERR_HTTP_HEADERS_SENT) happens 
+  // when two handlers both try to send an HTTP response to the same request.)
+  let responded = false;
+
+  const cleanup = () => {
+    runningExecutions = Math.max(0, runningExecutions - 1);
+  };
+
+  const sendResponse = (statusCode, body) => {
+    if (responded) return;
+    responded = true;
+    cleanup();
+    clearTimeout(timer);
+    fs.rmSync(jobDir, { recursive: true, force: true });
+    res.status(statusCode).json(body);
+  };
 
   //spawn doesnt take a single string, it takes command+array
   //   What spawn actually does?
@@ -55,6 +87,10 @@ export async function runCode(req, res) {
     `${process.cwd()}/${jobDir}:/app`,
     runtime.image,
   ]);
+
+  child.on("error", () => {
+    sendResponse(500, { error: "Failed to start execution container" });
+  });
 
   let timedOut = false;
   const TIME_LIMIT = 2000; // ms
@@ -99,9 +135,6 @@ export async function runCode(req, res) {
       status = "success";
     }
 
-    clearTimeout(timer);
-
-    fs.rmSync(jobDir, { recursive: true, force: true });
-    res.json({ status, stdout: output, stderr: error });
+    sendResponse(200, { status, stdout: output, stderr: error });
   });
 }
