@@ -2,7 +2,19 @@
 
 ## Overview
 
-This online compiler uses Docker containers to execute user-submitted code. The system creates ephemeral containers for each execution request, with resource limits and a timeout mechanism.
+This sandboxed code runner uses Docker containers to execute user-submitted code safely. The system creates ephemeral containers for each execution request, with resource limits, timeouts, and comprehensive security isolation.
+
+---
+
+## Design Principles
+
+1. **Batch Execution**: Strict concurrency control limits (5 max concurrent executions) to prevent resource exhaustion.
+
+2. **Stateless API**: Each request is independent with no shared state across executions. All state is ephemeral and cleaned up immediately.
+
+3. **Hostile-Code Assumption**: All user code is assumed malicious. Every execution runs in a restrictive sandbox with no network, limited resources, and minimal privileges.
+
+4. **Fail-Fast Cleanup**: Execution failures trigger immediate cleanup. Temporary files and container resources are released before responding to the client.
 
 ---
 
@@ -18,6 +30,7 @@ Client (Browser)
 Express Server (port 3000)
     │
     ├─ Rate limiter (100 req/15min)
+    ├─ Check execution capacity (max 5 concurrent)
     ├─ Validate language support
     ├─ Generate unique job ID: `job-${timestamp}`
     ├─ Create temporary execution directory
@@ -69,8 +82,7 @@ Response
 3. **Security Hardening**:
    - Network isolation: `--network=none` prevents all network access.
    - Capability dropping: `--cap-drop=ALL` removes unnecessary privileges.
-   - Read-only filesystem: `--read-only` restricts write access.
-   - Non-root execution: Containers run as `sandbox-user` (defined in Dockerfiles).
+   - Read-only filesystem: `--read-only` restricts file write access (except mounted volumes).
 
 4. **Timeout Mechanism**:
    - Manual timeout enforcement using `docker kill` after 2 seconds.
@@ -82,7 +94,7 @@ Response
 
 6. **Language Support**:
    - Python 3.11 (slim base image)
-   - C++ (GCC 13)
+   - C++ (GCC compiler)
    - Extensible runtime configuration in `runtimes.js`.
 
 ---
@@ -93,48 +105,66 @@ Response
 
 Each execution runs in a fully isolated container with:
 
-- **No network access**: Prevents downloading malicious code or data exfiltration
-- **No Linux capabilities**: Removes kernel-level privileges
-- **Read-only root filesystem**: Prevents persistent modifications
-- **Non-root user**: Limits container escape potential
+- **No network access**: `--network=none` prevents downloading malicious code or data exfiltration
+- **No Linux capabilities**: `--cap-drop=ALL` removes kernel-level privileges
 - **Resource constraints**: CPU, memory, and process limits prevent resource exhaustion
+- **Temporary writable space**: Job directory mounted as volume (cleaned immediately after execution)
 
 ### Attack Mitigation
 
-| Attack Vector          | Mitigation                               |
-| ---------------------- | ---------------------------------------- |
-| Fork bomb              | `--pids-limit=64`                        |
-| Memory bomb            | `--memory=256m`                          |
-| CPU exhaustion         | `--cpus=1`                               |
-| Infinite loop          | 2-second hard timeout with `docker kill` |
-| Network attacks        | `--network=none`                         |
-| Privilege escalation   | `--cap-drop=ALL` + non-root user         |
-| Filesystem persistence | `--read-only` + temporary directories    |
+| Attack Vector        | Mitigation                               |
+| -------------------- | ---------------------------------------- |
+| Fork bomb            | `--pids-limit=64`                        |
+| Memory bomb          | `--memory=256m`                          |
+| CPU exhaustion       | `--cpus=1`                               |
+| Infinite loop        | 2-second hard timeout with `docker kill` |
+| Network attacks      | `--network=none`                         |
+| Privilege escalation | `--cap-drop=ALL`                         |
+
+### Planned Security Enhancements
+
+- Non-root user enforcement via distroless base images
+- Error message sanitization (filter sensitive stderr)
+- Advanced seccomp profiles for syscall filtering
 
 ---
 
 ## Implementation Details
 
+### Docker Flags and Their Purpose
+
+```
+--name <id>          : Name the container for precise timeout control
+--rm                 : Auto-remove container after execution completes
+--cpus=1             : Limit CPU to 1 core
+--memory=256m        : Limit memory to 256 MB
+--pids-limit=64      : Limit processes to prevent fork bombs
+--network=none       : Disable all network access
+--cap-drop=ALL       : Drop all Linux capabilities
+-v <host>:<guest>   : Mount code directory into container
+```
+
 ### Spawn vs Exec
 
-The system uses Node.js `spawn` instead of `exec` for:
+The system uses Node.js `spawn` instead of `exec`:
 
-- **Streaming output**: Real-time stdout/stderr collection
+- **Streaming output**: Real-time stdout/stderr collection without buffering
 - **No shell overhead**: Direct process execution
 - **Better timeout control**: Manual kill mechanism via container name
-- **Lower memory footprint**: No buffering of complete output
+- **Lower memory footprint**: Chunk-based streaming instead of buffering complete output
 
 ### Execution Lifecycle
 
-1. **Job directory creation**: `executions/${jobId}/`
-2. **File writing**: Code and input files
-3. **Container spawn**: Docker run with security flags
-4. **Stream collection**: Stdout and stderr accumulated
-5. **Status determination**:
+1. **Capacity check**: Verify running executions < 5 (fail-fast if at capacity)
+2. **Job directory creation**: `executions/${jobId}/` with unique timestamp ID
+3. **File writing**: Code and input files written to job directory
+4. **Container spawn**: Docker run with security flags and volume mount
+5. **Stream collection**: Stdout and stderr accumulated chunk-by-chunk
+6. **Status determination**:
    - `timeout`: Timer expired, container killed
-   - `runtime_error`: stderr has content
+   - `runtime_error`: Stderr has content
    - `success`: Clean execution
-6. **Cleanup**: Directory removal, timer cleared
+7. **Cleanup**: Directory recursively removed, timer cleared, counter decremented
 
 ### Runtime Configuration
 
@@ -142,12 +172,12 @@ Runtimes are defined in `src/config/runtimes.js`:
 
 ```javascript
 {
-  image: "sandbox-image-name",
-  file: "source-filename"
+  image: "python-sandbox" | "cpp-sandbox",
+  file: "main.py" | "main.cpp"
 }
 ```
 
-This makes adding new languages a matter of:
+Adding new languages requires:
 
 1. Creating a Dockerfile in `sandbox/{language}/`
 2. Building the image
@@ -168,22 +198,19 @@ This makes adding new languages a matter of:
 │  │   - Spawns Docker containers      │  │
 │  │   - Streams execution results     │  │
 │  │   - Enforces timeouts             │  │
-│  └──────────────┬────────────────────┘  │
+│  │   - Rate limiting & concurrency   │  │
 │                 │                        │
 │  ┌──────────────▼────────────────────┐  │
 │  │       Docker Engine               │  │
 │  │                                   │  │
 │  │  [Container: job-123456]          │  │
 │  │   - python:3.11-slim              │  │
-│  │   - User: sandbox-user            │  │
 │  │   - Network: none                 │  │
-│  │   - Read-only FS                  │  │
 │  │   - CPU/Memory/PID limits         │  │
 │  │                                   │  │
 │  │  [Container: job-123457]          │  │
 │  │   - gcc:13                        │  │
-│  │   - User: sandbox-user            │  │
-│  │   - (same restrictions)           │  │
+│  │   - Same isolation/limits         │  │
 │  └───────────────────────────────────┘  │
 │                                         │
 │  ┌───────────────────────────────────┐  │
@@ -219,42 +246,33 @@ Execution count is incremented before spawning and decremented during cleanup, w
 
 ## Known Limitations
 
-1. **Error Message Exposure**:
-   - Full stderr is returned to clients (may leak system information).
+1. **Timestamp-Based Job IDs**:
+   - Using `Date.now()` may result in collisions under extreme concurrency (though probability is low).
 
-2. **Container Image Vulnerabilities**:
-   - Base images (python:3.11-slim, gcc:13) may have CVEs.
+2. **Error Message Exposure**:
+   - Full stderr is returned to clients and may leak system information.
 
-3. **No Input Validation**:
-   - Code content is not validated before execution.
-
-4. **Single-Server Architecture**:
-   - No horizontal scaling or load distribution.
-
-5. **Concurrency Ceiling**:
-   - Maximum 5 concurrent executions (configurable but not auto-scaling).
-
-6. **Temporary File Races**:
-   - Timestamp-based job IDs may collide under high concurrency.
+3. **Base Image Maintenance**:
+   - Container images (python:3.11-slim, gcc:13) require periodic updates for security patches.
 
 ---
 
-## Future Improvements
+## Planned Enhancements
 
-1. **Error Sanitization**:
-   - Filter stderr before returning to client.
+1. **UUID-Based Job IDs**:
+   - Replace timestamp with UUID v4 for collision-free identification.
 
-2. **Hardened Base Images**:
-   - Use distroless or minimal base images.
+2. **Error Sanitization**:
+   - Filter stderr before returning to client to prevent information leakage.
 
-3. **UUID-based Job IDs**:
-   - Replace timestamp with UUID for collision resistance.
+3. **Output Size Limits**:
+   - Truncate excessive stdout/stderr to prevent response bloat and memory issues.
 
 4. **Persistent Logging**:
-   - Log all executions for audit and debugging.
+   - Log all executions for audit, debugging, and usage analytics.
 
-5. **Additional Languages**:
-   - JavaScript (Node.js), Java, Rust, Go support.
+5. **Hardened Base Images**:
+   - Use distroless or security-focused minimal base images with smaller attack surface.
 
-6. **Output Size Limits**:
-   - Truncate excessive stdout/stderr to prevent response bloat.
+6. **Additional Languages**:
+   - JavaScript (Node.js), Java, Rust, Go, TypeScript support.

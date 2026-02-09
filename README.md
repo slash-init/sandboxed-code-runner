@@ -1,4 +1,4 @@
-# Online Code Execution Backend (Sandboxed)
+# Sandboxed Code Execution Backend
 
 A backend service that executes user-submitted code in isolated, resource-limited Docker containers.
 

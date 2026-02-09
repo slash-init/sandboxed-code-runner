@@ -1,6 +1,6 @@
 # Setup Guide
 
-This guide walks you through setting up the Online Code Execution Backend on your local machine.
+This guide walks you through setting up the Sandboxed Code Execution Backend on your local machine.
 
 ---
 
@@ -379,7 +379,7 @@ npm install
 ## Project Structure
 
 ```
-online-compiler/
+sandboxed-code-runner/
 ├── sandbox/                 # Docker image definitions
 │   ├── python/             # Python 3.11 sandbox
 │   │   └── Dockerfile
