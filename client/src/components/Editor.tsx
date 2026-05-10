@@ -307,6 +307,14 @@ export default function Editor() {
           line-height: 1.7 !important;
         }
 
+        .w-tc-editor code {
+          display: inline !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          border-radius: 0 !important;
+          border: none !important;
+        }
+
         .w-tc-editor textarea {
           color: rgba(255,255,255,0.85) !important;
           caret-color: #a78bfa !important;
