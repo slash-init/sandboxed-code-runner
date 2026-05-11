@@ -26,9 +26,12 @@ export async function runCode(req, res) {
 
   fs.mkdirSync("executions", { recursive: true }); //create the dir if it doesnt exist
 
-  fs.mkdirSync(jobDir);
-  fs.writeFileSync(path.join(jobDir, runtime.file), code);
-  fs.writeFileSync(path.join(jobDir, "input.txt"), input || "");
+  // mode 0o755 (dir) and 0o644 (files) = world-readable
+  // the container runs as sandbox-user (UID 1001), but host creates files as slash (UID 1000)
+  // without this, sandbox-user is treated as "other" and gets Permission Denied
+  fs.mkdirSync(jobDir, { mode: 0o755 });
+  fs.writeFileSync(path.join(jobDir, runtime.file), code, { mode: 0o644 });
+  fs.writeFileSync(path.join(jobDir, "input.txt"), input || "", { mode: 0o644 });
 
   // --rm : runs a container and automatically removes it after execution
   // --cpus=1 : limits the container to use maximum 1 CPU core(prevents CPU exhaustion attacks)
@@ -84,7 +87,10 @@ export async function runCode(req, res) {
     "--cap-drop=ALL", // Drop all capabilities
     "--read-only", // Use a read-only filesystem
     "-v",
-    `${process.cwd()}/${jobDir}:/app`,
+    // :z = tells Docker to relabel the mounted files for SELinux
+    // without it, SELinux (Enforcing mode) blocks container from reading host files
+    // because they have user_home_t label instead of container_file_t
+    `${process.cwd()}/${jobDir}:/app:z`,
     runtime.image,
   ]);
 
