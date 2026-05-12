@@ -1,7 +1,7 @@
 const API_BASE = '/api';
 
 export interface RunRequest {
-  language: 'python' | 'cpp';
+  language: 'python' | 'cpp' | 'javascript';
   code: string;
   input: string;
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import CodeEditor from '@uiw/react-textarea-code-editor';
+import CodeEditor, { getEditorInstance } from './CodeEditor';
 import {
   Play,
   Loader2,
@@ -11,6 +11,8 @@ import {
   Copy,
   Check,
   Trash2,
+  Download,
+  Sparkles,
 } from 'lucide-react';
 import { runCode, type RunResponse, type ApiError } from '../lib/api';
 import './Editor.css';
@@ -18,14 +20,16 @@ import './Editor.css';
 const LANGUAGES = [
   { value: 'python' as const, label: 'Python', ext: '.py' },
   { value: 'cpp' as const, label: 'C++', ext: '.cpp' },
+  { value: 'javascript' as const, label: 'JavaScript', ext: '.js' },
 ];
 
 const DEFAULT_CODE: Record<string, string> = {
   python: `def greet(name: str) -> str:\n    return f"Hello, {name}!"\n\nprint(greet("World"))`,
   cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, World!" << endl;\n    return 0;\n}`,
+  javascript: `function greet(name) {\n  return \`Hello, \${name}!\`;\n}\n\nconsole.log(greet("World"));`,
 };
 
-type Language = 'python' | 'cpp';
+type Language = 'python' | 'cpp' | 'javascript';
 
 interface EditorProps {
   onLanguageChange?: (lang: Language, ext: string) => void;
@@ -41,11 +45,13 @@ export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
   const [loading, setLoading] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const [execTimeMs, setExecTimeMs] = useState<number | null>(null);
 
   const langDropdownRef = useRef<HTMLDivElement>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
 
   // Report language changes upstream
   useEffect(() => {
@@ -127,6 +133,7 @@ export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
     return () => document.removeEventListener('keydown', handler);
   }, [handleRun]);
 
+  // Copy output
   const handleCopy = async () => {
     if (!output) return;
     try {
@@ -135,6 +142,38 @@ export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // clipboard API may be unavailable
+    }
+  };
+
+  // Copy code
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    } catch {
+      // clipboard API may be unavailable
+    }
+  };
+
+  // Download code
+  const handleDownload = () => {
+    const ext = LANGUAGES.find(l => l.value === language)!.ext;
+    const filename = `code${ext}`;
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Format code
+  const handleFormat = () => {
+    const editor = getEditorInstance(editorContainerRef.current);
+    if (editor) {
+      editor.getAction('editor.action.formatDocument')?.run();
     }
   };
 
@@ -230,26 +269,65 @@ export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
             </div>
           </div>
 
-          <button
-            className="run-btn"
-            onClick={handleRun}
-            disabled={loading}
-            aria-label={loading ? 'Code is running' : 'Run code'}
-            id="run-button"
-          >
-            {loading ? (
-              <>
-                <Loader2 size={15} className="spinner" />
-                <span>Running</span>
-              </>
-            ) : (
-              <>
-                <Play size={15} />
-                <span>Run</span>
-                <span className="run-shortcut" aria-hidden="true">⌘↵</span>
-              </>
-            )}
-          </button>
+          <div className="toolbar-actions">
+            {/* Format button */}
+            <button
+              className="editor-action-btn editor-action-btn--format"
+              onClick={handleFormat}
+              aria-label="Format code"
+              title="Format code (Shift+Alt+F)"
+              id="format-code"
+            >
+              <Sparkles size={12} />
+              <span className="editor-action-label">Format</span>
+            </button>
+
+            {/* Copy code button */}
+            <button
+              className="editor-action-btn"
+              onClick={handleCopyCode}
+              aria-label={codeCopied ? 'Code copied!' : 'Copy code'}
+              title={codeCopied ? 'Copied!' : 'Copy code'}
+              id="copy-code"
+            >
+              {codeCopied ? <Check size={12} /> : <Copy size={12} />}
+            </button>
+
+            {/* Download code button */}
+            <button
+              className="editor-action-btn"
+              onClick={handleDownload}
+              aria-label="Download code"
+              title={`Download as ${currentLang.label} file`}
+              id="download-code"
+            >
+              <Download size={12} />
+            </button>
+
+            <div className="toolbar-divider" aria-hidden="true" />
+
+            {/* Run button */}
+            <button
+              className="run-btn"
+              onClick={handleRun}
+              disabled={loading}
+              aria-label={loading ? 'Code is running' : 'Run code'}
+              id="run-button"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={15} className="spinner" />
+                  <span>Running</span>
+                </>
+              ) : (
+                <>
+                  <Play size={15} />
+                  <span>Run</span>
+                  <span className="run-shortcut" aria-hidden="true">⌘↵</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Code editor */}
@@ -258,21 +336,13 @@ export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
           onClick={() => setLangOpen(false)}
           role="region"
           aria-label="Code editor"
+          ref={editorContainerRef}
         >
           <CodeEditor
+            language={language}
             value={code}
-            language={language === 'python' ? 'python' : 'cpp'}
-            onChange={(e) => setCode(e.target.value)}
-            data-color-mode="dark"
-            padding={16}
-            aria-label={`${currentLang.label} code editor`}
-            style={{
-              backgroundColor: 'transparent',
-              fontSize: 13.5,
-              fontFamily: "'JetBrains Mono', monospace",
-              minHeight: 360,
-              lineHeight: 1.7,
-            }}
+            onChange={setCode}
+            fontSize={13.5}
           />
         </div>
 

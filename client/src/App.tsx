@@ -10,7 +10,12 @@ function AppContent() {
   const [execTimeMs, setExecTimeMs] = useState<number | null>(null);
 
   const handleLanguageChange = useCallback((lang: string, ext: string) => {
-    const label = lang === 'python' ? 'Python' : 'C++';
+    const labelMap: Record<string, string> = {
+      python: 'Python',
+      cpp: 'C++',
+      javascript: 'JavaScript',
+    };
+    const label = labelMap[lang] || lang;
     setLangInfo({ language: label, ext });
   }, []);
 

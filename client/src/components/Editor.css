@@ -216,46 +216,9 @@
 
 /* ── Code Area ─────────────────────────────────────────────── */
 .code-area-wrapper {
-  overflow: auto;
-  min-height: 360px;
-  max-height: 500px;
+  overflow: hidden;
+  height: 400px;
   position: relative;
-}
-
-/* Code editor overrides */
-.w-tc-editor {
-  min-height: 360px !important;
-  background: transparent !important;
-}
-
-.w-tc-editor,
-.w-tc-editor > div,
-.w-tc-editor textarea,
-.w-tc-editor pre,
-.w-tc-editor code {
-  background: transparent !important;
-  background-color: transparent !important;
-}
-
-.w-tc-editor textarea,
-.w-tc-editor pre,
-.w-tc-editor code {
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 13.5px !important;
-  line-height: 1.7 !important;
-}
-
-.w-tc-editor code {
-  display: inline !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border-radius: 0 !important;
-  border: none !important;
-}
-
-.w-tc-editor textarea {
-  color: var(--text-primary) !important;
-  caret-color: var(--caret-color) !important;
 }
 
 /* ── Section Label ─────────────────────────────────────────── */
