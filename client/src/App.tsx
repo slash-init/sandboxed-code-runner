@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import Header from './components/Header';
 import Editor from './components/Editor';
@@ -6,6 +7,7 @@ import StatusBar from './components/StatusBar';
 import './App.css';
 
 function AppContent() {
+  const { snippetId } = useParams<{ snippetId?: string }>();
   const [langInfo, setLangInfo] = useState({ language: 'Python', ext: '.py' });
   const [execTimeMs, setExecTimeMs] = useState<number | null>(null);
 
@@ -33,6 +35,7 @@ function AppContent() {
         <Editor
           onLanguageChange={handleLanguageChange}
           onExecTime={handleExecTime}
+          snippetId={snippetId}
         />
       </main>
       <StatusBar

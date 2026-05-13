@@ -50,3 +50,45 @@ export async function healthCheck(): Promise<boolean> {
     return false;
   }
 }
+
+export interface SnippetResponse {
+  id: string;
+  language: string;
+  code: string;
+  input: string;
+  createdAt: string;
+}
+
+export async function saveSnippet(data: { language: string; code: string; input: string }): Promise<{ id: string }> {
+  const res = await fetch(`${API_BASE}/snippets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw {
+      message: body.error || `Failed to save snippet (HTTP ${res.status})`,
+      code: res.status,
+    } as ApiError;
+  }
+
+  return res.json();
+}
+
+export async function getSnippet(id: string): Promise<SnippetResponse> {
+  const res = await fetch(`${API_BASE}/snippets/${id}`, {
+    signal: AbortSignal.timeout(5000),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw {
+      message: body.error || `Snippet not found (HTTP ${res.status})`,
+      code: res.status,
+    } as ApiError;
+  }
+
+  return res.json();
+}

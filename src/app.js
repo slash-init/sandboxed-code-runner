@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import runRoutes from "./routes/run.routes.js";
+import snippetRoutes from "./routes/snippet.routes.js";
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/run", runRoutes);
+app.use("/snippets", snippetRoutes);
 
 export default app;

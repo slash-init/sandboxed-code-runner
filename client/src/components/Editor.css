@@ -354,3 +354,153 @@
   border-radius: 4px;
   background: var(--bg-input);
 }
+
+/* ── Share Button ──────────────────────────────────────────── */
+.editor-action-btn--share {
+  color: var(--accent) !important;
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent) !important;
+}
+
+.editor-action-btn--share:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent) !important;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.editor-action-btn--share .spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* ── Share Toast ───────────────────────────────────────────── */
+.share-toast {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-surface-solid);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px color-mix(in srgb, var(--accent) 15%, transparent);
+  backdrop-filter: blur(16px);
+  z-index: 1000;
+  animation: toast-slide-in 0.3s ease;
+  max-width: 500px;
+}
+
+.share-toast--error {
+  border-color: var(--status-error-glow);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px var(--status-error-glow);
+}
+
+.share-toast-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.share-toast-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.share-toast-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.share-toast-url {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-toast-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--status-error);
+}
+
+.share-toast-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.share-toast-close:hover {
+  color: var(--text-primary);
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ── Snippet Loading / Error Overlays ──────────────────────── */
+.snippet-loading-overlay,
+.snippet-error-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: color-mix(in srgb, var(--bg-base) 85%, transparent);
+  backdrop-filter: blur(8px);
+  z-index: 999;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.snippet-loading-overlay .spinner {
+  animation: spin 1s linear infinite;
+  color: var(--accent);
+}
+
+.snippet-error-overlay {
+  color: var(--status-error);
+}
+
+.snippet-error-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 20px;
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: 8px;
+}
+
+.snippet-error-btn:hover {
+  background: var(--bg-input);
+  border-color: var(--border-hover);
+}

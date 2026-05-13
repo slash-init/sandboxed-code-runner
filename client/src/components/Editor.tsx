@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CodeEditor, { getEditorInstance } from './CodeEditor';
 import {
   Play,
@@ -13,8 +14,10 @@ import {
   Trash2,
   Download,
   Sparkles,
+  Share2,
+  Link,
 } from 'lucide-react';
-import { runCode, type RunResponse, type ApiError } from '../lib/api';
+import { runCode, saveSnippet, getSnippet, type RunResponse, type ApiError } from '../lib/api';
 import './Editor.css';
 
 const LANGUAGES = [
@@ -34,9 +37,11 @@ type Language = 'python' | 'cpp' | 'javascript';
 interface EditorProps {
   onLanguageChange?: (lang: Language, ext: string) => void;
   onExecTime?: (ms: number | null) => void;
+  snippetId?: string;
 }
 
-export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
+export default function Editor({ onLanguageChange, onExecTime, snippetId }: EditorProps) {
+  const navigate = useNavigate();
   const [code, setCode] = useState(DEFAULT_CODE['python']);
   const [language, setLanguage] = useState<Language>('python');
   const [input, setInput] = useState('');
@@ -47,11 +52,40 @@ export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
   const [copied, setCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [execTimeMs, setExecTimeMs] = useState<number | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const [shareToast, setShareToast] = useState<string | null>(null);
+  const [snippetLoading, setSnippetLoading] = useState(!!snippetId);
+  const [snippetError, setSnippetError] = useState<string | null>(null);
 
   const langDropdownRef = useRef<HTMLDivElement>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  // Load shared snippet on mount
+  useEffect(() => {
+    if (!snippetId) return;
+    let cancelled = false;
+    setSnippetLoading(true);
+    setSnippetError(null);
+
+    getSnippet(snippetId)
+      .then((snippet) => {
+        if (cancelled) return;
+        setCode(snippet.code);
+        setLanguage(snippet.language as Language);
+        setInput(snippet.input || '');
+        setSnippetLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        const apiErr = err as ApiError;
+        setSnippetError(apiErr.message || 'Failed to load snippet');
+        setSnippetLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [snippetId]);
 
   // Report language changes upstream
   useEffect(() => {
@@ -183,6 +217,38 @@ export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
     setExecTimeMs(null);
   };
 
+  // Share code
+  const handleShare = async () => {
+    if (sharing) return;
+    setSharing(true);
+    setShareToast(null);
+
+    try {
+      const { id } = await saveSnippet({ language, code, input });
+      const shareUrl = `${window.location.origin}/s/${id}`;
+
+      // Update URL without full page reload
+      navigate(`/s/${id}`, { replace: true });
+
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareToast(shareUrl);
+      } catch {
+        // Clipboard may be unavailable, still show the link
+        setShareToast(shareUrl);
+      }
+
+      // Auto-dismiss toast after 5 seconds
+      setTimeout(() => setShareToast(null), 5000);
+    } catch (err: unknown) {
+      const apiErr = err as ApiError;
+      setShareToast(`Error: ${apiErr.message || 'Failed to share'}`);
+      setTimeout(() => setShareToast(null), 4000);
+    } finally {
+      setSharing(false);
+    }
+  };
+
   const currentLang = LANGUAGES.find(l => l.value === language)!;
 
   const statusConfig: Record<string, { icon: typeof CheckCircle2; color: string; glow: string; bg: string }> = {
@@ -302,6 +368,19 @@ export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
               id="download-code"
             >
               <Download size={12} />
+            </button>
+
+            {/* Share button */}
+            <button
+              className="editor-action-btn editor-action-btn--share"
+              onClick={handleShare}
+              disabled={sharing}
+              aria-label={sharing ? 'Sharing...' : 'Share code'}
+              title="Share code as a link"
+              id="share-code"
+            >
+              {sharing ? <Loader2 size={12} className="spinner" /> : <Share2 size={12} />}
+              <span className="editor-action-label">Share</span>
             </button>
 
             <div className="toolbar-divider" aria-hidden="true" />
@@ -437,6 +516,49 @@ export default function Editor({ onLanguageChange, onExecTime }: EditorProps) {
           )}
         </div>
       </div>
+
+      {/* Share toast notification */}
+      {shareToast && (
+        <div className={`share-toast ${shareToast.startsWith('Error') ? 'share-toast--error' : ''}`}>
+          {shareToast.startsWith('Error') ? (
+            <span className="share-toast-text">{shareToast}</span>
+          ) : (
+            <>
+              <Link size={14} className="share-toast-icon" />
+              <div className="share-toast-content">
+                <span className="share-toast-label">Link copied to clipboard!</span>
+                <span className="share-toast-url">{shareToast}</span>
+              </div>
+            </>
+          )}
+          <button
+            className="share-toast-close"
+            onClick={() => setShareToast(null)}
+            aria-label="Dismiss"
+          >
+            <XCircle size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Snippet loading overlay */}
+      {snippetLoading && (
+        <div className="snippet-loading-overlay">
+          <Loader2 size={28} className="spinner" />
+          <span>Loading shared snippet...</span>
+        </div>
+      )}
+
+      {/* Snippet error overlay */}
+      {snippetError && (
+        <div className="snippet-error-overlay">
+          <XCircle size={28} />
+          <span>{snippetError}</span>
+          <button className="snippet-error-btn" onClick={() => { setSnippetError(null); navigate('/'); }}>
+            Go to Editor
+          </button>
+        </div>
+      )}
     </div>
   );
 }
