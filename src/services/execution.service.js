@@ -4,7 +4,7 @@ import { spawn } from "child_process";
 import { runtimes } from "../config/runtimes.js";
 
 let runningExecutions = 0;
-const MAX_EXECUTIONS = 5;
+const MAX_EXECUTIONS = parseInt(process.env.MAX_EXECUTIONS) || 5;
 
 export async function runCode(req, res) {
   const { language, code, input } = req.body;
@@ -99,7 +99,7 @@ export async function runCode(req, res) {
   });
 
   let timedOut = false;
-  const TIME_LIMIT = 2000; // ms
+  const TIME_LIMIT = parseInt(process.env.TIME_LIMIT) || 2000; // ms
   //manual timeout kill - spawn doesnt have built-in timeout like exec
   const timer = setTimeout(() => {
     timedOut = true;
