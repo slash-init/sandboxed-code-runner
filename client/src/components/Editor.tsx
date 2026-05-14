@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Group, Panel, Separator } from 'react-resizable-panels';
 import CodeEditor, { getEditorInstance } from './CodeEditor';
 import {
   Play,
@@ -56,11 +57,19 @@ export default function Editor({ onLanguageChange, onExecTime, snippetId }: Edit
   const [shareToast, setShareToast] = useState<string | null>(null);
   const [snippetLoading, setSnippetLoading] = useState(!!snippetId);
   const [snippetError, setSnippetError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const langDropdownRef = useRef<HTMLDivElement>(null);
   const langMenuRef = useRef<HTMLDivElement>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  // Window resize handler
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Load shared snippet on mount
   useEffect(() => {
@@ -282,9 +291,9 @@ export default function Editor({ onLanguageChange, onExecTime, snippetId }: Edit
   const StatusIcon = sc?.icon;
 
   return (
-    <div className="editor-grid" id="editor-main">
+    <Group orientation={isMobile ? "vertical" : "horizontal"} className="editor-layout-container">
       {/* Left: Code editor panel */}
-      <div className="glass-panel editor-panel">
+      <Panel defaultSize={50} minSize={20} className="glass-panel editor-panel">
         {/* Toolbar */}
         <div className="editor-toolbar" role="toolbar" aria-label="Editor controls">
           <div className="toolbar-left">
@@ -441,10 +450,14 @@ export default function Editor({ onLanguageChange, onExecTime, snippetId }: Edit
             aria-label="Standard input for the program"
           />
         </div>
-      </div>
+      </Panel>
+
+      <Separator className="panel-resize-handle">
+        <div className="panel-resize-handle-line" />
+      </Separator>
 
       {/* Right: Output panel */}
-      <div className="glass-panel editor-panel">
+      <Panel defaultSize={50} minSize={20} className="glass-panel editor-panel">
         {/* Output toolbar */}
         <div className="editor-toolbar output-toolbar" role="toolbar" aria-label="Output controls">
           <div className="section-label">
@@ -515,7 +528,7 @@ export default function Editor({ onLanguageChange, onExecTime, snippetId }: Edit
             </pre>
           )}
         </div>
-      </div>
+      </Panel>
 
       {/* Share toast notification */}
       {shareToast && (
@@ -559,6 +572,6 @@ export default function Editor({ onLanguageChange, onExecTime, snippetId }: Edit
           </button>
         </div>
       )}
-    </div>
+    </Group>
   );
 }

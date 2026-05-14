@@ -2,17 +2,68 @@
    EDITOR COMPONENT STYLES
    ============================================================ */
 
-/* ── Main Grid ─────────────────────────────────────────────── */
-.editor-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  align-items: start;
+/* ── Split-Pane Layout ─────────────────────────────────────── */
+.editor-layout-container {
+  height: 100%;
+  min-height: 600px;
 }
 
-@media (max-width: 960px) {
-  .editor-grid {
-    grid-template-columns: 1fr;
+.panel-resize-handle {
+  position: relative;
+  width: 16px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  transition: all 0.2s ease;
+}
+
+/* Vertical layout on mobile */
+@media (max-width: 768px) {
+  .panel-resize-handle {
+    width: 100%;
+    height: 16px;
+    cursor: row-resize;
+  }
+}
+
+.panel-resize-handle-line {
+  position: absolute;
+  background: var(--border);
+  transition: all 0.2s ease;
+}
+
+/* Horizontal handle line */
+.panel-resize-handle[data-resize-handle-state="hover"] .panel-resize-handle-line,
+.panel-resize-handle[data-resize-handle-state="drag"] .panel-resize-handle-line {
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+@media (min-width: 769px) {
+  .panel-resize-handle-line {
+    width: 3px;
+    height: 48px;
+    border-radius: 4px;
+  }
+  .panel-resize-handle[data-resize-handle-state="hover"] .panel-resize-handle-line,
+  .panel-resize-handle[data-resize-handle-state="drag"] .panel-resize-handle-line {
+    width: 4px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .panel-resize-handle-line {
+    height: 2px;
+    width: 40px;
+    border-radius: 4px;
+  }
+  .panel-resize-handle[data-resize-handle-state="hover"] .panel-resize-handle-line,
+  .panel-resize-handle[data-resize-handle-state="drag"] .panel-resize-handle-line {
+    height: 4px;
+    width: 60px;
   }
 }
 
@@ -21,7 +72,9 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
+
 
 /* ── Toolbar ───────────────────────────────────────────────── */
 .editor-toolbar {
@@ -33,6 +86,8 @@
   border-bottom: 1px solid var(--border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   min-height: 48px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .toolbar-left {
