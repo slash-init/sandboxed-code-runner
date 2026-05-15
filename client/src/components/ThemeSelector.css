@@ -15,7 +15,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -125,7 +125,7 @@
 }
 
 .theme-name {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
@@ -133,7 +133,7 @@
 }
 
 .theme-desc {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   font-size: 10px;
   color: var(--text-muted);
   line-height: 1.3;
