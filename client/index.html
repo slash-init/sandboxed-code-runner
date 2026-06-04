@@ -1,17 +1,132 @@
 <!doctype html>
-<html lang="en">
+<html class="light" lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Sandboxed Code Runner — Execute Python and C++ code safely in isolated Docker containers with real-time output." />
-    <meta name="theme-color" content="#0a0a12" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <title>Code Runner — Sandboxed Execution</title>
+    <meta name="theme-color" content="#f9f9f8" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:wght@100..800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <title>Sandboxed Runner — Code Execution</title>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+              "surface-container-high": "#e8e8e7",
+              "on-error-container": "#93000a",
+              "on-tertiary-container": "#ffd2be",
+              "outline-variant": "#c7c4d8",
+              "on-secondary-fixed-variant": "#474646",
+              "surface": "#f9f9f8",
+              "on-background": "#1a1c1c",
+              "on-surface-variant": "#464555",
+              "on-tertiary-fixed": "#351000",
+              "primary-fixed-dim": "#c3c0ff",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-fixed": "#ffdbcc",
+              "surface-container-low": "#f4f4f3",
+              "surface-tint": "#4d44e3",
+              "on-surface": "#1a1c1c",
+              "inverse-surface": "#2f3130",
+              "error-container": "#ffdad6",
+              "primary-fixed": "#e2dfff",
+              "on-tertiary-fixed-variant": "#7b2f00",
+              "secondary-fixed-dim": "#c8c6c5",
+              "inverse-on-surface": "#f1f1f0",
+              "surface-container-highest": "#e2e2e1",
+              "on-tertiary": "#ffffff",
+              "outline": "#777587",
+              "surface-dim": "#dadad9",
+              "on-secondary-container": "#656464",
+              "on-primary-fixed-variant": "#3323cc",
+              "tertiary-fixed-dim": "#ffb695",
+              "surface-container": "#eeeeed",
+              "on-error": "#ffffff",
+              "surface-bright": "#f9f9f8",
+              "primary-container": "#4f46e5",
+              "on-primary-fixed": "#0f0069",
+              "on-primary-container": "#dad7ff",
+              "secondary": "#5f5e5e",
+              "primary": "#3525cd",
+              "secondary-fixed": "#e5e2e1",
+              "on-secondary-fixed": "#1c1b1b",
+              "on-primary": "#ffffff",
+              "surface-variant": "#e2e2e1",
+              "secondary-container": "#e5e2e1",
+              "background": "#f9f9f8",
+              "tertiary": "#7e3000",
+              "inverse-primary": "#c3c0ff",
+              "error": "#ba1a1a",
+              "tertiary-container": "#a44100",
+              "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+              "DEFAULT": "0.125rem",
+              "lg": "0.25rem",
+              "xl": "0.5rem",
+              "full": "0.75rem"
+            },
+            "spacing": {
+              "container-max": "1440px",
+              "unit": "4px",
+              "lg": "24px",
+              "md": "16px",
+              "sm": "8px",
+              "xs": "4px",
+              "gutter": "16px",
+              "xl": "40px"
+            },
+            "fontFamily": {
+              "label-caps": ["Geist"],
+              "body-base": ["Geist"],
+              "headline-md": ["Geist"],
+              "display-lg": ["Geist"],
+              "body-sm": ["Geist"],
+              "code-base": ["JetBrains Mono"],
+              "code-sm": ["JetBrains Mono"]
+            },
+            "fontSize": {
+              "label-caps": ["11px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+              "body-base": ["14px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+              "headline-md": ["20px", {"lineHeight": "1.4", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+              "display-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+              "body-sm": ["13px", {"lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "400"}],
+              "code-base": ["13px", {"lineHeight": "1.6", "fontWeight": "450"}],
+              "code-sm": ["12px", {"lineHeight": "1.5", "fontWeight": "450"}]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+        font-size: 18px;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e2e1;
+      }
+      .editor-gutter {
+        border-right: 1px solid #e5e5e4;
+        user-select: none;
+      }
+      .command-palette-overlay {
+        background: rgba(26, 28, 28, 0.05);
+        backdrop-filter: blur(2px);
+      }
+    </style>
   </head>
-  <body>
+  <body class="bg-background text-on-background font-body-base text-body-base selection:bg-primary-fixed selection:text-on-primary-fixed-variant">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

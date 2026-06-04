@@ -1,8 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
 import MonacoEditor, { type OnMount, type BeforeMount } from '@monaco-editor/react';
 import type { editor as MonacoEditorAPI, IDisposable } from 'monaco-editor';
-import { useTheme, type ThemeName } from '../context/ThemeContext';
-import './CodeEditor.css';
 
 export interface CodeEditorProps {
   language: string;
@@ -25,175 +23,47 @@ const TAB_SIZE_MAP: Record<string, number> = {
   javascript: 2,
 };
 
-/* ── Theme definitions ──────────────────────────────────────── */
-type ThemeDef = Parameters<typeof import('monaco-editor').editor.defineTheme>[1];
-
-function buildThemes(): Record<ThemeName, ThemeDef> {
-  return {
-    'dark-nebula': {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [
-        { token: 'comment', foreground: '6b6394', fontStyle: 'italic' },
-        { token: 'keyword', foreground: 'c4b5fd' },
-        { token: 'string', foreground: '86efac' },
-        { token: 'number', foreground: 'fbbf24' },
-        { token: 'type', foreground: '67e8f9' },
-        { token: 'function', foreground: 'a78bfa' },
-        { token: 'variable', foreground: 'eee8ff' },
-        { token: 'operator', foreground: 'f0abfc' },
-        { token: 'delimiter', foreground: '9ca3af' },
-      ],
-      colors: {
-        'editor.background': '#0d0c1a',
-        'editor.foreground': '#eee8ff',
-        'editor.lineHighlightBackground': '#1e1c3820',
-        'editor.selectionBackground': '#a78bfa40',
-        'editorCursor.foreground': '#a78bfa',
-        'editorLineNumber.foreground': '#6b639460',
-        'editorLineNumber.activeForeground': '#a78bfa',
-        'editorIndentGuide.background': '#ffffff0a',
-        'editorIndentGuide.activeBackground': '#a78bfa30',
-        'editorBracketMatch.background': '#a78bfa25',
-        'editorBracketMatch.border': '#a78bfa50',
-        'editorWidget.background': '#16152a',
-        'editorWidget.border': '#ffffff15',
-        'editorSuggestWidget.background': '#16152a',
-        'editorSuggestWidget.border': '#ffffff15',
-        'editorSuggestWidget.foreground': '#eee8ff',
-        'editorSuggestWidget.selectedBackground': '#a78bfa30',
-        'editorSuggestWidget.highlightForeground': '#c4b5fd',
-        'editorHoverWidget.background': '#16152a',
-        'editorHoverWidget.border': '#ffffff15',
-        'scrollbar.shadow': '#00000000',
-        'scrollbarSlider.background': '#ffffff1a',
-        'scrollbarSlider.hoverBackground': '#ffffff33',
-      },
-    },
-    'midnight-ocean': {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [
-        { token: 'comment', foreground: '4b7a8f', fontStyle: 'italic' },
-        { token: 'keyword', foreground: '67e8f9' },
-        { token: 'string', foreground: '86efac' },
-        { token: 'number', foreground: 'fbbf24' },
-        { token: 'type', foreground: '22d3ee' },
-        { token: 'function', foreground: '7dd3fc' },
-        { token: 'variable', foreground: 'e0f4ff' },
-        { token: 'operator', foreground: 'a5f3fc' },
-        { token: 'delimiter', foreground: '7a9bb0' },
-      ],
-      colors: {
-        'editor.background': '#080f18',
-        'editor.foreground': '#e0f4ff',
-        'editor.lineHighlightBackground': '#0e203420',
-        'editor.selectionBackground': '#22d3ee35',
-        'editorCursor.foreground': '#22d3ee',
-        'editorLineNumber.foreground': '#4b7a8f60',
-        'editorLineNumber.activeForeground': '#22d3ee',
-        'editorIndentGuide.background': '#64c8ff0a',
-        'editorIndentGuide.activeBackground': '#22d3ee30',
-        'editorBracketMatch.background': '#22d3ee25',
-        'editorBracketMatch.border': '#22d3ee50',
-        'editorWidget.background': '#0c1a2a',
-        'editorWidget.border': '#64c8ff15',
-        'editorSuggestWidget.background': '#0c1a2a',
-        'editorSuggestWidget.border': '#64c8ff15',
-        'editorSuggestWidget.foreground': '#e0f4ff',
-        'editorSuggestWidget.selectedBackground': '#22d3ee28',
-        'editorSuggestWidget.highlightForeground': '#67e8f9',
-        'editorHoverWidget.background': '#0c1a2a',
-        'editorHoverWidget.border': '#64c8ff15',
-        'scrollbar.shadow': '#00000000',
-        'scrollbarSlider.background': '#64c8ff1a',
-        'scrollbarSlider.hoverBackground': '#64c8ff33',
-      },
-    },
-    'aura-light': {
-      base: 'vs',
-      inherit: true,
-      rules: [
-        { token: 'comment', foreground: '9ca3af', fontStyle: 'italic' },
-        { token: 'keyword', foreground: '7c3aed' },
-        { token: 'string', foreground: '16a34a' },
-        { token: 'number', foreground: 'ea580c' },
-        { token: 'type', foreground: '0891b2' },
-        { token: 'function', foreground: '6d28d9' },
-        { token: 'variable', foreground: '1e1b33' },
-        { token: 'operator', foreground: '9333ea' },
-        { token: 'delimiter', foreground: '6b7280' },
-      ],
-      colors: {
-        'editor.background': '#faf9fe',
-        'editor.foreground': '#1e1b33',
-        'editor.lineHighlightBackground': '#f3f0ff60',
-        'editor.selectionBackground': '#7c3aed25',
-        'editorCursor.foreground': '#7c3aed',
-        'editorLineNumber.foreground': '#1e1b3330',
-        'editorLineNumber.activeForeground': '#7c3aed',
-        'editorIndentGuide.background': '#1e1b3310',
-        'editorIndentGuide.activeBackground': '#7c3aed25',
-        'editorBracketMatch.background': '#7c3aed18',
-        'editorBracketMatch.border': '#7c3aed40',
-        'editorWidget.background': '#ffffff',
-        'editorWidget.border': '#1e1b3315',
-        'editorSuggestWidget.background': '#ffffff',
-        'editorSuggestWidget.border': '#1e1b3312',
-        'editorSuggestWidget.foreground': '#1e1b33',
-        'editorSuggestWidget.selectedBackground': '#7c3aed15',
-        'editorSuggestWidget.highlightForeground': '#7c3aed',
-        'editorHoverWidget.background': '#ffffff',
-        'editorHoverWidget.border': '#1e1b3312',
-        'scrollbar.shadow': '#00000000',
-        'scrollbarSlider.background': '#1e1b3318',
-        'scrollbarSlider.hoverBackground': '#1e1b3328',
-      },
-    },
-    'cyber-neon': {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [
-        { token: 'comment', foreground: '2d5a3e', fontStyle: 'italic' },
-        { token: 'keyword', foreground: '00ff88' },
-        { token: 'string', foreground: 'ffaa00' },
-        { token: 'number', foreground: '00d4c8' },
-        { token: 'type', foreground: '33ffaa' },
-        { token: 'function', foreground: '00e676' },
-        { token: 'variable', foreground: 'd0ffe0' },
-        { token: 'operator', foreground: '66ffbb' },
-        { token: 'delimiter', foreground: '4d8a6a' },
-      ],
-      colors: {
-        'editor.background': '#030306',
-        'editor.foreground': '#d0ffe0',
-        'editor.lineHighlightBackground': '#00ff8808',
-        'editor.selectionBackground': '#00ff8830',
-        'editorCursor.foreground': '#00ff88',
-        'editorLineNumber.foreground': '#00ff8830',
-        'editorLineNumber.activeForeground': '#00ff88',
-        'editorIndentGuide.background': '#00ff880a',
-        'editorIndentGuide.activeBackground': '#00ff8825',
-        'editorBracketMatch.background': '#00ff8820',
-        'editorBracketMatch.border': '#00ff8845',
-        'editorWidget.background': '#0a0a10',
-        'editorWidget.border': '#00ff8815',
-        'editorSuggestWidget.background': '#0a0a10',
-        'editorSuggestWidget.border': '#00ff8815',
-        'editorSuggestWidget.foreground': '#d0ffe0',
-        'editorSuggestWidget.selectedBackground': '#00ff8820',
-        'editorSuggestWidget.highlightForeground': '#00ff88',
-        'editorHoverWidget.background': '#0a0a10',
-        'editorHoverWidget.border': '#00ff8815',
-        'scrollbar.shadow': '#00000000',
-        'scrollbarSlider.background': '#00ff881a',
-        'scrollbarSlider.hoverBackground': '#00ff8833',
-      },
-    },
-  };
-}
-
-const THEME_DEFS = buildThemes();
+/* ── Light theme matching the new design ───────────────────── */
+const SANDBOXED_LIGHT_THEME = {
+  base: 'vs' as const,
+  inherit: true,
+  rules: [
+    { token: 'comment', foreground: '777587', fontStyle: 'italic' },
+    { token: 'keyword', foreground: '3525cd' },
+    { token: 'string', foreground: 'a44100' },
+    { token: 'number', foreground: 'a44100' },
+    { token: 'type', foreground: '7e3000' },
+    { token: 'function', foreground: '4f46e5' },
+    { token: 'variable', foreground: '1a1c1c' },
+    { token: 'operator', foreground: '5f5e5e' },
+    { token: 'delimiter', foreground: '777587' },
+  ],
+  colors: {
+    'editor.background': '#ffffff',
+    'editor.foreground': '#1a1c1c',
+    'editor.lineHighlightBackground': '#f4f4f320',
+    'editor.selectionBackground': '#e2dfff',
+    'editorCursor.foreground': '#4f46e5',
+    'editorLineNumber.foreground': '#77758760',
+    'editorLineNumber.activeForeground': '#4f46e5',
+    'editorIndentGuide.background': '#1a1c1c0a',
+    'editorIndentGuide.activeBackground': '#4f46e530',
+    'editorBracketMatch.background': '#e2dfff40',
+    'editorBracketMatch.border': '#4f46e550',
+    'editorWidget.background': '#f9f9f8',
+    'editorWidget.border': '#c7c4d8',
+    'editorSuggestWidget.background': '#f9f9f8',
+    'editorSuggestWidget.border': '#c7c4d8',
+    'editorSuggestWidget.foreground': '#1a1c1c',
+    'editorSuggestWidget.selectedBackground': '#e2dfff',
+    'editorSuggestWidget.highlightForeground': '#3525cd',
+    'editorHoverWidget.background': '#f9f9f8',
+    'editorHoverWidget.border': '#c7c4d8',
+    'scrollbar.shadow': '#00000000',
+    'scrollbarSlider.background': '#e2e2e1',
+    'scrollbarSlider.hoverBackground': '#c7c4d8',
+  },
+};
 
 /* ── Keyword lists ──────────────────────────────────────────── */
 const PYTHON_KW = [
@@ -240,21 +110,17 @@ export default function CodeEditor({
   onChange,
   readOnly = false,
   height = '100%',
-  fontSize = 14,
+  fontSize = 13,
 }: CodeEditorProps) {
   const editorRef = useRef<MonacoEditorAPI.IStandaloneCodeEditor | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const disposablesRef = useRef<IDisposable[]>([]);
-  const { theme } = useTheme();
 
   const handleBeforeMount: BeforeMount = useCallback((monaco) => {
-    for (const [name, def] of Object.entries(THEME_DEFS)) {
-      monaco.editor.defineTheme(name, def as Parameters<typeof monaco.editor.defineTheme>[1]);
-    }
+    monaco.editor.defineTheme('sandboxed-light', SANDBOXED_LIGHT_THEME);
   }, []);
 
   const registerProviders = useCallback((monaco: any, lang: string) => {
-    // Clear old disposables
     disposablesRef.current.forEach(d => d.dispose());
     disposablesRef.current = [];
 
@@ -262,7 +128,6 @@ export default function CodeEditor({
     const keywords = KW_MAP[lang] || [];
     const tabSize = TAB_SIZE_MAP[lang] || 4;
 
-    // 1. Register Completion Provider
     disposablesRef.current.push(
       monaco.languages.registerCompletionItemProvider(monacoLang, {
         provideCompletionItems: (model: any, position: any) => {
@@ -285,7 +150,6 @@ export default function CodeEditor({
       })
     );
 
-    // 2. Register Formatting Provider for C++ and Python
     if (lang === 'cpp' || lang === 'python') {
       const provider = {
         provideDocumentFormattingEdits(model: any) {
@@ -297,27 +161,19 @@ export default function CodeEditor({
           const formattedLines = lines.map((line: string) => {
             let trimmed = line.trim();
             if (!trimmed) return '';
-            
-            // Decrease indent BEFORE the line for closing braces (C++)
             if (lang === 'cpp' && trimmed.startsWith('}')) {
               indentLevel = Math.max(0, indentLevel - 1);
             }
-            
-            // Special case for C++ access modifiers
             let currentIndent = indentLevel;
             if (lang === 'cpp' && (trimmed.startsWith('public:') || trimmed.startsWith('private:') || trimmed.startsWith('protected:'))) {
               currentIndent = Math.max(0, indentLevel - 1);
             }
-            
             const result = indentStr.repeat(currentIndent) + trimmed;
-            
-            // Increase indent AFTER the line
             if (lang === 'cpp' && trimmed.endsWith('{')) {
               indentLevel++;
             } else if (lang === 'python' && trimmed.endsWith(':')) {
               indentLevel++;
             }
-            
             return result;
           });
 
@@ -338,10 +194,7 @@ export default function CodeEditor({
     (editor, monaco) => {
       editorRef.current = editor;
       editor.focus();
-
       registerProviders(monaco, language);
-
-      // Expose editor on the wrapper ref for parent access
       if (wrapperRef.current) {
         (wrapperRef.current as any).__monacoEditor = editor;
       }
@@ -349,11 +202,9 @@ export default function CodeEditor({
     [language, registerProviders]
   );
 
-  // Re-register providers on language change
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
-    
     import('@monaco-editor/react').then(({ loader }) => {
       loader.init().then((monaco) => {
         registerProviders(monaco, language);
@@ -361,7 +212,6 @@ export default function CodeEditor({
     });
   }, [language, registerProviders]);
 
-  // Update tab size on language change
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor) return;
@@ -369,7 +219,6 @@ export default function CodeEditor({
     editor.getModel()?.updateOptions({ tabSize, insertSpaces: true });
   }, [language]);
 
-  // Cleanup
   useEffect(() => {
     return () => {
       disposablesRef.current.forEach(d => d.dispose());
@@ -385,7 +234,7 @@ export default function CodeEditor({
         height={height}
         language={monacoLang}
         value={value}
-        theme={theme}
+        theme="sandboxed-light"
         onChange={(val) => onChange(val ?? '')}
         beforeMount={handleBeforeMount}
         onMount={handleMount}
@@ -419,10 +268,10 @@ export default function CodeEditor({
           smoothScrolling: true,
           scrollBeyondLastLine: false,
           scrollbar: {
-            verticalScrollbarSize: 6,
-            horizontalScrollbarSize: 6,
-            verticalSliderSize: 6,
-            horizontalSliderSize: 6,
+            verticalScrollbarSize: 4,
+            horizontalScrollbarSize: 4,
+            verticalSliderSize: 4,
+            horizontalSliderSize: 4,
           },
           quickSuggestions: { other: true, comments: false, strings: false },
           suggestOnTriggerCharacters: true,
