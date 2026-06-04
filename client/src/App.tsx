@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import CodeEditor, { getEditorInstance } from './components/CodeEditor';
 import { runCode, saveSnippet, getSnippet, healthCheck, type RunResponse, type ApiError } from './lib/api';
 import './App.css';
@@ -169,7 +169,7 @@ function App() {
       {/* Top Navigation Bar */}
       <header className="flex justify-between items-center px-lg h-12 w-full z-40 bg-surface-container-lowest border-b border-outline-variant">
         <div className="flex items-center gap-md">
-          <span className="font-headline-md text-headline-md text-on-surface font-semibold">Sandboxed Runner</span>
+          <Link to="/" className="font-headline-md text-headline-md text-on-surface font-semibold hover:text-primary transition-colors">Sandboxed Runner</Link>
           <nav className="hidden md:flex gap-md ml-xl">
             <a className="font-label-caps text-label-caps text-secondary transition-all duration-150 hover:text-on-surface" href="#">Docs</a>
             <a className="font-label-caps text-label-caps text-secondary transition-all duration-150 hover:text-on-surface" href="#">Changelog</a>
