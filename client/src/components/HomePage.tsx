@@ -35,13 +35,13 @@ export default function HomePage() {
           <span className="font-headline-md text-headline-md text-on-surface font-semibold">Sandboxed Runner</span>
           <div className="hidden md:flex gap-sm ml-xl">
             <a className="font-label-caps text-label-caps text-primary border-b-2 border-primary px-xs py-1 transition-all duration-150" href="#">How It Works</a>
-            <a className="font-label-caps text-label-caps text-secondary px-xs py-1 hover:text-on-surface transition-all duration-150" href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a className="font-label-caps text-label-caps text-secondary px-xs py-1 hover:text-on-surface transition-all duration-150" href="https://github.com/slash-init/sandboxed-code-runner" target="_blank" rel="noopener noreferrer">GitHub</a>
             <a className="font-label-caps text-label-caps text-secondary px-xs py-1 hover:text-on-surface transition-all duration-150" href="#">About</a>
           </div>
         </div>
         <div className="flex items-center gap-md">
           <div className="hidden md:flex items-center gap-sm">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="material-symbols-outlined text-secondary hover:text-on-surface transition-all duration-150">code</a>
+            <a href="https://github.com/slash-init/sandboxed-code-runner" target="_blank" rel="noopener noreferrer" className="material-symbols-outlined text-secondary hover:text-on-surface transition-all duration-150">code</a>
           </div>
           <Link to="/editor" className="bg-primary text-on-primary px-md py-xs font-label-caps text-label-caps rounded hover:brightness-110 active:opacity-80 transition-all">
             Open Editor
@@ -67,7 +67,7 @@ export default function HomePage() {
               <Link to="/editor" className="bg-primary text-on-primary px-lg py-md rounded-lg font-label-caps text-label-caps flex items-center gap-sm hover:brightness-95 transition-all">
                 Open Editor <span className="material-symbols-outlined">play_arrow</span>
               </Link>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="border border-outline text-on-surface px-lg py-md rounded-lg font-label-caps text-label-caps hover:bg-surface-container-low transition-all flex items-center gap-sm">
+              <a href="https://github.com/slash-init/sandboxed-code-runner" target="_blank" rel="noopener noreferrer" className="border border-outline text-on-surface px-lg py-md rounded-lg font-label-caps text-label-caps hover:bg-surface-container-low transition-all flex items-center gap-sm">
                 <span className="material-symbols-outlined text-[16px]">code</span> View Source
               </a>
             </div>
@@ -243,7 +243,7 @@ export default function HomePage() {
               <Link to="/editor" className="bg-primary text-on-primary px-xl py-md rounded-lg font-label-caps text-label-caps hover:brightness-110 transition-all">
                 Open Editor
               </Link>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="border border-outline text-on-surface px-xl py-md rounded-lg font-label-caps text-label-caps hover:bg-surface-container-low transition-all">
+              <a href="https://github.com/slash-init/sandboxed-code-runner" target="_blank" rel="noopener noreferrer" className="border border-outline text-on-surface px-xl py-md rounded-lg font-label-caps text-label-caps hover:bg-surface-container-low transition-all">
                 View on GitHub
               </a>
             </div>
@@ -257,7 +257,7 @@ export default function HomePage() {
           Sandboxed Runner — Open Source
         </div>
         <div className="flex gap-md">
-          <a className="font-code-sm text-code-sm text-on-surface-variant opacity-70 hover:opacity-100 hover:underline transition-opacity" href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a className="font-code-sm text-code-sm text-on-surface-variant opacity-70 hover:opacity-100 hover:underline transition-opacity" href="https://github.com/slash-init/sandboxed-code-runner" target="_blank" rel="noopener noreferrer">GitHub</a>
           <Link to="/editor" className="font-code-sm text-code-sm text-on-surface-variant opacity-70 hover:opacity-100 hover:underline transition-opacity">Editor</Link>
         </div>
       </footer>
