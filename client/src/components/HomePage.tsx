@@ -34,9 +34,9 @@ export default function HomePage() {
         <div className="flex items-center gap-md">
           <span className="font-headline-md text-headline-md text-on-surface font-semibold">Sandboxed Runner</span>
           <div className="hidden md:flex gap-sm ml-xl">
-            <a className="font-label-caps text-label-caps text-primary border-b-2 border-primary px-xs py-1 transition-all duration-150" href="#">How It Works</a>
+            <a className="font-label-caps text-label-caps text-primary border-b-2 border-primary px-xs py-1 transition-all duration-150" href="#how-it-works">How It Works</a>
             <a className="font-label-caps text-label-caps text-secondary px-xs py-1 hover:text-on-surface transition-all duration-150" href="https://github.com/slash-init/sandboxed-code-runner" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a className="font-label-caps text-label-caps text-secondary px-xs py-1 hover:text-on-surface transition-all duration-150" href="#">About</a>
+            <Link className="font-label-caps text-label-caps text-secondary px-xs py-1 hover:text-on-surface transition-all duration-150" to="/about">About</Link>
           </div>
         </div>
         <div className="flex items-center gap-md">
@@ -148,7 +148,7 @@ export default function HomePage() {
         </section>
 
         {/* Features Section */}
-        <section className="bg-surface-container-low py-xl border-y border-outline-variant">
+        <section id="how-it-works" className="bg-surface-container-low py-xl border-y border-outline-variant">
           <div className="max-w-container-max mx-auto px-lg">
             <div className="mb-xl">
               <h2 className="font-headline-md text-headline-md text-on-surface">How It Works</h2>
