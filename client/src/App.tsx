@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import CodeEditor from './components/CodeEditor';
+import BrandMark from './components/BrandMark';
 import { runCode, saveSnippet, getSnippet, healthCheck, type RunResponse, type ApiError } from './lib/api';
 import './App.css';
 
@@ -169,7 +170,9 @@ function App() {
       {/* Top Navigation Bar */}
       <header className="flex justify-between items-center px-lg h-12 w-full z-40 bg-surface-container-lowest border-b border-outline-variant">
         <div className="flex items-center gap-md">
-          <Link to="/" className="font-headline-md text-headline-md text-on-surface font-semibold hover:text-primary transition-colors">Sandboxed Runner</Link>
+          <Link to="/" className="font-headline-md text-headline-md text-on-surface font-semibold hover:text-primary transition-colors">
+            <BrandMark />
+          </Link>
           <nav className="hidden md:flex gap-md ml-xl">
             <Link className="font-label-caps text-label-caps text-secondary transition-all duration-150 hover:text-on-surface" to="/about">About</Link>
             <a className="font-label-caps text-label-caps text-secondary transition-all duration-150 hover:text-on-surface" href="#">Docs</a>
@@ -427,7 +430,7 @@ function App() {
                   <span className="text-xs font-bold font-label-caps">{connected ? 'Backend Connected' : connected === false ? 'Backend Offline' : 'Checking...'}</span>
                 </div>
                 <p className="text-[11px] leading-tight text-on-surface-variant">
-                  {connected ? 'Sandboxed execution environment is ready.' : connected === false ? 'Cannot reach the execution backend.' : 'Verifying connection...'}
+                  {connected ? 'Sandbx. execution environment is ready.' : connected === false ? 'Cannot reach the execution backend.' : 'Verifying connection...'}
                 </p>
               </div>
             </div>
@@ -473,7 +476,7 @@ function App() {
         </div>
         <div className="flex items-center gap-md font-code-sm text-code-sm text-on-surface-variant opacity-70">
           <span className="font-code-base text-code-base">{currentLang.label} {currentLang.ext}</span>
-          <span className="font-code-base text-code-base text-primary">Sandboxed Runner v1.0</span>
+          <span className="font-code-base text-code-base text-primary">Sandbx. v1.0</span>
         </div>
       </footer>
 

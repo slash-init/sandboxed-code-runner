@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import BrandMark from './BrandMark';
 
 export default function HomePage() {
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -32,7 +33,7 @@ export default function HomePage() {
       {/* TopNavBar */}
       <nav className="flex justify-between items-center px-lg h-12 w-full z-40 bg-surface-container-lowest border-b border-outline-variant fixed top-0 left-0">
         <div className="flex items-center gap-md">
-          <span className="font-headline-md text-headline-md text-on-surface font-semibold">Sandboxed Runner</span>
+          <BrandMark className="font-headline-md text-headline-md text-on-surface font-semibold" />
           <div className="hidden md:flex gap-sm ml-xl">
             <a className="font-label-caps text-label-caps text-primary border-b-2 border-primary px-xs py-1 transition-all duration-150" href="#how-it-works">How It Works</a>
             <a className="font-label-caps text-label-caps text-secondary px-xs py-1 hover:text-on-surface transition-all duration-150" href="https://github.com/slash-init/sandboxed-code-runner" target="_blank" rel="noopener noreferrer">GitHub</a>
@@ -254,7 +255,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="flex justify-between items-center w-full bg-surface-container h-8 py-xs px-md border-t border-outline-variant">
         <div className="font-code-sm text-code-sm text-on-surface-variant opacity-70">
-          Sandboxed Runner — Open Source
+          <BrandMark className="font-code-sm text-code-sm text-on-surface-variant opacity-70" /> — Open Source
         </div>
         <div className="flex gap-md">
           <a className="font-code-sm text-code-sm text-on-surface-variant opacity-70 hover:opacity-100 hover:underline transition-opacity" href="https://github.com/slash-init/sandboxed-code-runner" target="_blank" rel="noopener noreferrer">GitHub</a>

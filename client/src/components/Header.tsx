@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Cpu, Wifi, WifiOff } from 'lucide-react';
 import ThemeSelector from './ThemeSelector';
+import BrandMark from './BrandMark';
 import { healthCheck } from '../lib/api';
 import './Header.css';
 
@@ -32,8 +33,8 @@ export default function Header() {
             <Cpu size={20} />
           </div>
           <div className="header-titles">
-            <h1 className="header-title">Code Runner</h1>
-            <p className="header-subtitle">Sandboxed · Isolated · Real-time</p>
+            <h1 className="header-title"><BrandMark /></h1>
+            <p className="header-subtitle">Sandbx. · Isolated · Real-time</p>
           </div>
         </div>
 

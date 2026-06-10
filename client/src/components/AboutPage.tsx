@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
+import BrandMark from './BrandMark';
 
 const highlights = [
   {
     title: 'What this project is',
-    body: 'Sandboxed Runner is a browser-based code execution environment for Python, C++, and JavaScript. It is designed for local development, demos, workshops, and safe experimentation with untrusted snippets.',
+    body: 'Sandbx. is a browser-based code execution environment for Python, C++, and JavaScript. It is designed for local development, demos, workshops, and safe experimentation with untrusted snippets.',
   },
   {
     title: 'How isolation works',
@@ -29,7 +30,7 @@ export default function AboutPage() {
         <div className="mx-auto flex max-w-container-max items-center justify-between px-lg h-12">
           <div className="flex items-center gap-md">
             <Link to="/" className="font-headline-md text-headline-md font-semibold text-on-surface hover:text-primary transition-colors">
-              Sandboxed Runner
+              <BrandMark />
             </Link>
             <span className="hidden md:inline font-label-caps text-label-caps text-secondary">About</span>
           </div>
