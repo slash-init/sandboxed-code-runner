@@ -2,7 +2,7 @@
 
 ## Overview
 
-This sandboxed code runner uses Docker containers to execute user-submitted code safely. The system creates ephemeral containers for each execution request, with resource limits, timeouts, and comprehensive security isolation.
+This Sandbx. application uses Docker containers to execute user-submitted code safely. The system creates ephemeral containers for each execution request, with resource limits, timeouts, and comprehensive security isolation.
 
 ---
 

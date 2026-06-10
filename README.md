@@ -1,15 +1,15 @@
-# Sandboxed Code Runner
+# Sandbx.
 
 A full-stack web application that allows users to write, execute, and share code securely in isolated Docker containers.
 
-This project provides a premium, glassmorphic frontend editor paired with a robust backend execution engine designed to handle untrusted user code safely.
+This project provides a modern frontend editor paired with a robust backend execution engine designed to handle untrusted user code safely.
 
 ---
 
 ## Core Features
 
 - **Rich Code Editor**: Integrated Monaco Editor with syntax highlighting, IntelliSense, auto-formatting, and intelligent tab support.
-- **Premium UI**: Multi-theme system (Dark Nebula, Midnight Ocean, Aura Light, Cyber Neon) with a responsive, glassmorphic split-pane layout.
+- **Premium UI**: Clean, responsive layout with a custom light theme and robust Monaco Editor integration.
 - **Secure Sandboxed Execution**: User code runs inside isolated, constrained Docker containers.
 - **Resource Limits**: Enforced CPU, memory, process count, and execution time limits.
 - **Snippet Sharing**: Save your code and generate a unique URL to share with others.
@@ -40,8 +40,9 @@ The system is composed of two main parts:
 - React 18
 - Vite
 - Monaco Editor
-- Vanilla CSS (CSS Variables for dynamic theming)
-- Lucide React (Icons)
+- Vanilla CSS
+- Tailwind CSS
+- Material Symbols (Icons)
 
 ### Backend
 - Node.js & Express

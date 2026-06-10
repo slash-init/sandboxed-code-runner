@@ -1,6 +1,6 @@
 # Setup Guide
 
-This guide walks you through setting up the Sandboxed Code Runner (both frontend and backend) on your local machine.
+This guide walks you through setting up the Sandbx. application (both frontend and backend) on your local machine.
 
 ---
 
